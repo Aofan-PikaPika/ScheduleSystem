@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CCWin;
+using System.IO;
 
 namespace Schedule
 {
@@ -44,9 +45,25 @@ namespace Schedule
 
         private void workButton_Click(object sender, EventArgs e)
         {
+            DataLayer dl = new DataLayer();     
+            AlgorithmLayer al = new AlgorithmLayer(dl.getDictFromStatistics(), dl.InsertDataIndicator(),dl.dataAreaBuffer(),dl.getStaffList());
+            
+
+        }
+
+        private void exportButton_Click(object sender, EventArgs e)
+        {
             DataLayer dl = new DataLayer();
-            dl.statisticsFromTB(0);
-            dl.getStaffList();
+            DataTable dt = dl.dataAreaBuffer();
+            dt.Rows[0][1] = "esdfsas";
+            ExcelHelper sh = new ExcelHelper();
+            if (sh.Open(filePath))
+            {
+                sh.InsertTable(dt,"整班",2,7);
+            }
+            string newName = Path.GetDirectoryName(filePath) + "\\测试结果.xlsx";
+            sh.SaveAs(newName);
+            sh.Close();
         }
     }
 }

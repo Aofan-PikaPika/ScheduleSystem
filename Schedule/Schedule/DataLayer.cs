@@ -7,7 +7,8 @@ using System.Data;
 
 namespace Schedule
 {
-    class MembersInRoom 
+    //构建字典所用的属性类
+    public class MembersInRoom 
     {
         /// <summary>
         /// 第一场考试所需人数
@@ -140,11 +141,17 @@ namespace Schedule
     }
     public class DataLayer
     {
+        public DataLayer() 
+        {
+            statisticsFromTB(0);
+        }
         #region 数据获取与清洗
         static DataTable dt1;
         static DataTable dt2;
         Dictionary<string, MembersInRoom> members = new Dictionary<string, MembersInRoom>();
         MembersInRoom mir;
+        int[] indicator = new int[dt1.Rows.Count];
+        List<string> roomList = new List<string>();
         //从数据源获得两个数据表格
         public static bool getDataFromFile(string filePath) 
         {
@@ -182,6 +189,7 @@ namespace Schedule
         {
             int dtLength = dt1.Rows.Count-1;
             HashSet<string> rooms = new HashSet<string>();
+            //考虑使用list辅助          
             string flagString = dt1.Rows[startIndex]["考试时间"].ToString();
             string todayDate = flagString.Substring(0, 5);
             string time = flagString.Substring(13);
@@ -200,17 +208,24 @@ namespace Schedule
                 
                 string foreString = dt1.Rows[i]["考试时间"].ToString();
                 string backString = dt1.Rows[i+1]["考试时间"].ToString();
+                
                 if (rooms.Add(dt1.Rows[i]["考场"].ToString()))
                 {
+                    roomList.Add(dt1.Rows[i]["考场"].ToString());
                     if (dt1.Rows[i]["主监考"].ToString() != "")
                     {
                         occupiedNum++;
-                        string occupyname=dt1.Rows[i]["主监考"].ToString();
-                        if (occupyname.Substring(occupyname.Length-2,2)!="学院")
+                        string occupyname = dt1.Rows[i]["主监考"].ToString();
+                        if (occupyname.Substring(occupyname.Length - 2, 2) != "学院")
                         {
                             occupylist.Add(occupyname);
                         }
                     }
+                }
+                else 
+                {                   
+                    indicator[roomList.LastIndexOf(dt1.Rows[i]["考场"].ToString())]=i;
+                    roomList.Add(dt1.Rows[i]["考场"].ToString());
                 }
                 if (!String.Equals(foreString,backString))
                 {
@@ -309,7 +324,28 @@ namespace Schedule
 
         #endregion
 
+        #region 数据插入
+        //数据插入指示器
+        public int[] InsertDataIndicator() 
+        {
+            return indicator;
+        }
 
+        //数据区域替换(实现整体写入excel)
+        public DataTable dataAreaBuffer() 
+        {
+            if (dt1 != null)
+            {
+                DataTable dtBuffer = dt1.DefaultView.ToTable(false, new string[] { "主监考", "副监考" });
+                return dtBuffer;
+            }
+            else 
+            {
+                return null;
+            }
+        }
+
+        #endregion
 
     }
 }

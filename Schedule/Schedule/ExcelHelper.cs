@@ -116,6 +116,23 @@ namespace Schedule
             GC.Collect();
         }
 
+        public bool SaveAs(object FileName)
+        //文档另存为
+        {
+            try
+            {
+                wb.SaveAs(FileName, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Microsoft.Office.Interop.Excel.XlSaveAsAccessMode.xlExclusive, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+                return true;
+
+            }
+
+            catch (Exception ex)
+            {
+                return false;
+
+            }
+        }
+
 
     }
 }

@@ -116,6 +116,7 @@
             this.exportButton.TabIndex = 2;
             this.exportButton.Text = "导出EXCEL文件";
             this.exportButton.UseVisualStyleBackColor = false;
+            this.exportButton.Click += new System.EventHandler(this.exportButton_Click);
             // 
             // label1
             // 
