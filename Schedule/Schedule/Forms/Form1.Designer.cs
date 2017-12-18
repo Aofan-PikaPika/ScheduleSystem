@@ -34,6 +34,7 @@
             this.workButton = new CCWin.SkinControl.SkinButton();
             this.exportButton = new CCWin.SkinControl.SkinButton();
             this.label1 = new System.Windows.Forms.Label();
+            this.btnCheck = new CCWin.SkinControl.SkinButton();
             this.flowLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -42,11 +43,10 @@
             this.flowLayoutPanel1.Controls.Add(this.importButton);
             this.flowLayoutPanel1.Controls.Add(this.workButton);
             this.flowLayoutPanel1.Controls.Add(this.exportButton);
-            this.flowLayoutPanel1.Controls.Add(this.label1);
-            this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(4, 34);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(297, 513);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(297, 471);
             this.flowLayoutPanel1.TabIndex = 0;
             // 
             // importButton
@@ -77,6 +77,7 @@
             this.workButton.BackColor = System.Drawing.Color.Transparent;
             this.workButton.ControlState = CCWin.SkinClass.ControlState.Normal;
             this.workButton.DownBack = null;
+            this.workButton.Enabled = false;
             this.workButton.FadeGlow = false;
             this.workButton.Font = new System.Drawing.Font("微软雅黑", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.workButton.ForeColor = System.Drawing.Color.White;
@@ -100,6 +101,7 @@
             this.exportButton.BackColor = System.Drawing.Color.Transparent;
             this.exportButton.ControlState = CCWin.SkinClass.ControlState.Normal;
             this.exportButton.DownBack = null;
+            this.exportButton.Enabled = false;
             this.exportButton.FadeGlow = false;
             this.exportButton.Font = new System.Drawing.Font("微软雅黑", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.exportButton.ForeColor = System.Drawing.Color.White;
@@ -121,25 +123,50 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(3, 474);
+            this.label1.Location = new System.Drawing.Point(17, 508);
+            this.label1.MaximumSize = new System.Drawing.Size(263, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(41, 12);
+            this.label1.Size = new System.Drawing.Size(65, 12);
             this.label1.TabIndex = 3;
-            this.label1.Text = "label1";
+            this.label1.Text = "未导入文件";
+            // 
+            // btnCheck
+            // 
+            this.btnCheck.BackColor = System.Drawing.Color.Transparent;
+            this.btnCheck.ControlState = CCWin.SkinClass.ControlState.Normal;
+            this.btnCheck.DownBack = null;
+            this.btnCheck.Enabled = false;
+            this.btnCheck.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.btnCheck.ForeColor = System.Drawing.Color.White;
+            this.btnCheck.IsDrawBorder = false;
+            this.btnCheck.IsDrawGlass = false;
+            this.btnCheck.Location = new System.Drawing.Point(210, 536);
+            this.btnCheck.MouseBack = null;
+            this.btnCheck.Name = "btnCheck";
+            this.btnCheck.NormlBack = null;
+            this.btnCheck.RoundStyle = CCWin.SkinClass.RoundStyle.All;
+            this.btnCheck.Size = new System.Drawing.Size(75, 23);
+            this.btnCheck.TabIndex = 6;
+            this.btnCheck.Text = "验证";
+            this.btnCheck.UseVisualStyleBackColor = false;
+            this.btnCheck.Click += new System.EventHandler(this.btnCheck_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CanResize = false;
-            this.ClientSize = new System.Drawing.Size(305, 551);
+            this.ClientSize = new System.Drawing.Size(305, 566);
+            this.Controls.Add(this.btnCheck);
             this.Controls.Add(this.flowLayoutPanel1);
+            this.Controls.Add(this.label1);
             this.MaximizeBox = false;
             this.Name = "Form1";
             this.Text = "监考排班软件";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.flowLayoutPanel1.ResumeLayout(false);
-            this.flowLayoutPanel1.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -150,6 +177,7 @@
         private CCWin.SkinControl.SkinButton workButton;
         private CCWin.SkinControl.SkinButton exportButton;
         private System.Windows.Forms.Label label1;
+        private CCWin.SkinControl.SkinButton btnCheck;
 
     }
 }

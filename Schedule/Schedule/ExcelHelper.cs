@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Excel;
 
 namespace Schedule
@@ -107,13 +106,18 @@ namespace Schedule
         /// </summary>
         public void Close() 
         {
-            wb.Close(Type.Missing, Type.Missing, Type.Missing);
-            wbs.Close();
-            app.Quit();
+            try
+            {
+                wb.Close(Type.Missing, Type.Missing, Type.Missing);
+                wbs.Close();
+                app.Quit();
+            }
+            catch { }//在点击取消时可能在wbs中抛出异常，这个层给他处理掉
             wb = null;
             wbs = null;
             app = null;
             GC.Collect();
+            
         }
 
         public bool SaveAs(object FileName)
@@ -123,7 +127,6 @@ namespace Schedule
             {
                 wb.SaveAs(FileName, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Microsoft.Office.Interop.Excel.XlSaveAsAccessMode.xlExclusive, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
                 return true;
-
             }
 
             catch (Exception ex)
