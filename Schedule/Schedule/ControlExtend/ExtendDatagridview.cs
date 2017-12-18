@@ -13,7 +13,14 @@ namespace Schedule.ControlExtend
     {
         public static bool ChangeHeadValue(this DataGridView dgv, int col, string expectedStr)
         {
-            if (dgv.ColumnCount < col || col < 0) return false;
+            if (col < 0) throw new Exception("要求了负的列值");
+            //有空的表头老师没填
+            //这里填了，以后还可能会有问题
+
+            if (col >= dgv.ColumnCount) throw new Exception("输入数据少列");
+            //{
+            //    dgv.Columns.Add("col" + col, expectedStr);
+            //}
             dgv.Columns[col].HeaderText = expectedStr;
             return true;
         }

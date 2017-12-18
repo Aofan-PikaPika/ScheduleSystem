@@ -137,11 +137,14 @@
       <Lcid>0</Lcid>
       <WrapperTool>primary</WrapperTool>
       <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+      <Private>True</Private>
     </COMReference>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Content Include="CSkin.dll" />
+    <Content Include="Microsoft.Office.Interop.Excel.dll" />
     <Content Include="Resourse\ButtonPicture\calc.png" />
     <Content Include="Resourse\ButtonPicture\In.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

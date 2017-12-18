@@ -87,7 +87,6 @@ namespace Schedule
                         this.dgvArrange.Enabled = false;
                         this.dgvStatistic.Enabled = false;
                         this.statusLblStatus.Text = "正在执行...";
-                        this.statusLblStatus.ForeColor = Color.Red;
                     }
                     break;
                 case Status.WaitToOutput:
@@ -156,9 +155,19 @@ namespace Schedule
                 {
                     this.dgvArrange.DataSource = DataLayer.DtRawTchArrange;
                     this.dgvStatistic.DataSource = DataLayer.DtRawStatistics;
-                    CorrectTwoDgv();
-                    //能走到这里说明窗体已经做好了计算准备，转变窗体的状态
-                    StatusChange(Status.WaitToCalc);
+                    try
+                    {
+                        CorrectTwoDgv();
+                        //能走到这里说明窗体已经做好了计算准备，转变窗体的状态
+                        StatusChange(Status.WaitToCalc);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBoxEx.Show(ex.Message);
+                        this.dgvArrange.DataSource = null;
+                        this.dgvStatistic.DataSource = null;
+                        StatusChange(Status.WaitToImport);
+                    }
                 }
             }
         }
@@ -213,7 +222,6 @@ namespace Schedule
             //UI主线程执行运算，子线程弹出等待界面
             Thread t = new Thread(() => new FrmWait().ShowDialog());
             t.Start();
-            this.Enabled = false;
             try
             {
                 //这三个参数用来接收ForceCalc返回的结果
@@ -233,15 +241,15 @@ namespace Schedule
                 MessageBoxEx.Show("耗时" + loopInterval + "秒，监考次数极差为" + range + "\n导出后对结果不满意，可再点击排班", "执行结果");
                 StatusChange(Status.WaitToOutput);
             }
-            catch
+            catch(Exception ex)
             {
                 Thread.Sleep(500);//关闭前不让主线程sleep可能会出现不稳定的情况
                 t.Abort();
                 swForUser.Stop();
-                MessageBox.Show("数据格式不符合要求", "错误");
+                MessageBoxEx.Show(ex.Message, "错误");
+                StatusChange(Status.WaitToCalc);
                 //让用户无法进行导出,计算，验证
             }
-            this.Enabled = true;
         }
 
  

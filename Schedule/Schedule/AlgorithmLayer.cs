@@ -13,8 +13,6 @@ namespace Schedule
     public class AlgorithmLayer
     {
         private Dictionary<string, Schedule.MembersInRoom> dicInfo;
-        private int[] insertIndicator;
-        private DataTable dtBuffer;
         private List<string> staffList;
         
 
@@ -123,15 +121,14 @@ namespace Schedule
                     return a.InvigilationCnt.CompareTo(b.InvigilationCnt);
                 });
                 if (i == 0)totalTeacherLst =  UpsetTeacherList(totalTeacherLst);//开始时乱序一次
-                #region 上午第一时段
-                //安排上午第一时段
 
+                //安排上午第一时段
                 //检查第一个时段预定的老师
                 List<Teacher> oneIntvOdrTch = CheckOdr(totalTeacherLst, thisDayOdTcherName[0]);
                 //在第一个时段选择前剔除预定的老师
                 List<Teacher> oneRemoveOdrList = totalTeacherLst.Except(oneIntvOdrTch).ToList<Teacher>();
                 //检查边界条件
-                if (thisDayWanted[0] > totalTeacherLst.Count) throw new Exception("第" + i + "天，第1时段需要教师过多");
+                if (thisDayWanted[0] > totalTeacherLst.Count) throw new Exception("第" + (i+1) + "天，第1时段需要教师过多");
                 //挑选出第一个时段需要写入记录上的老师
                 Teacher[] oneIntvTcherArr = new Teacher[thisDayWanted[0]];
                 oneRemoveOdrList.CopyTo(0, oneIntvTcherArr, 0, thisDayWanted[0]);//再复制
@@ -139,16 +136,11 @@ namespace Schedule
                 Invigilation(oneIntvTcherArr);
                 oneDayOutput.Add(oneIntvTcherArr.ToList<Teacher>());
                 /*注意，当前天在第一时段工作过的老师记录再oneIntvTcherArr,预定的老师不在其中！*/
-                #endregion
 
-
-                #region 上午第二时段
-
+                //上午第二时段
                 List<Teacher> oneIntvTcher = oneIntvTcherArr.ToList<Teacher>();
                 List<Teacher> twoIntvTcher = IntvInvigilationUseLast(totalTeacherLst, oneIntvTcher, thisDayWanted[1], thisDayOdTcherName[1]);
                 oneDayOutput.Add(twoIntvTcher);
-                #endregion
-
 
                 //下午第一个时段
                 //下午第一个时段选人，要优先选上午干过活以外的人，即总的teacherList与上午两个时段较长的一个作差
