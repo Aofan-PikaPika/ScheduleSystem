@@ -16,7 +16,7 @@ using System.IO;
 namespace Schedule.Forms
 {
     //使用委托将子窗体查询到的datatable传给主窗体
-    public delegate void getTableFromDBHandle(DataTable dt1, DataTable dt2);
+    public delegate void getTableFromDBHandle(DataTable dt1, DataTable dt2,RawInfo existInfo);
     public partial class SubFormQuery : Skin_Metro
     {
        
@@ -46,7 +46,9 @@ namespace Schedule.Forms
                 DataTable dt1 = Deserilize<DataTable>(buffer);
                 byte[] buffer2 = (byte[])dt0.Rows[0][0];
                 DataTable dt2 = Deserilize<DataTable>(buffer2);
-                getTableFromDBFunction(dt1, dt2);
+                //建立信息对象
+                RawInfo existInfo = new RawInfo(int.Parse(this.cboSchoolYear.SelectedItem.ToString()), this.cboSemester.SelectedItem.ToString(), "");
+                getTableFromDBFunction(dt1, dt2,existInfo);
                 this.DialogResult = DialogResult.OK;
             }
             else

@@ -136,9 +136,13 @@ namespace Schedule
                             this.tbtnCalc.Enabled = false;
                             this.tbtnReset.Enabled = false;
                         }
+
                         this.tabControl.SelectedIndex = 0;
                         this.tbtnSaveToDb.Enabled = true;
                         this.tbtnSearch.Enabled = true;
+                        this.tbtnOut.Enabled = false;
+                        this.tbtnOutSeveralCol.Enabled = false;
+                        this.statusLblSchoolYear.Text = this.rawInfo.SchYear + "学年" +this.rawInfo.Semester + "学期";
                         this.statusLblStatus.Text = "查询成功";
                     }
                     break;
@@ -339,9 +343,10 @@ namespace Schedule
                     //整体将人员安排的表格写入
                     sh.InsertTable(dtFinalArrange, "整班", 2, 1);
                     sh.InsertTable(dtFinalStatistic, "监考次数统计", 4, 1);
+                    ShowDialogAndSave(sh);
                 }
-                ShowDialogAndSave(sh);
                 sh.Close();
+                MessageBoxEx.Show("保存成功","成功");
             }
             catch
             {
@@ -353,7 +358,7 @@ namespace Schedule
 
         private void ShowDialogAndSave(ExcelHelper sh)
         {
-            string newName = Path.GetDirectoryName(this.rawInfo.FilePath) + "\\安排结果.xlsx";
+            string newName = Path.GetDirectoryName(this.rawInfo.FilePath) + "\\"+this.rawInfo.SchYear+"学年"+this.rawInfo.Semester+"学期_安排结果"+".xlsx";
             SaveFileDialog sfd = new SaveFileDialog();
             sfd.FileName = newName;
             sfd.Filter = "EXCEL文件(*.xls)|*.xls;*.xlsx";
@@ -369,7 +374,9 @@ namespace Schedule
         }
 
         private void tbtnSaveToDb_Click(object sender, EventArgs e)
-        {  
+        {
+            Status priviousSt = this.status;
+            StatusChange(Status.Processing);
             //保存没有实质性的改变，则不改变窗体界面的状态
             //查询逻辑
                 //判断，保存逻辑       
@@ -396,7 +403,8 @@ namespace Schedule
                 string insertCmd = @"update tb_calcRecord set schYear=" + rawInfo.SchYear + ",semester='" + rawInfo.Semester + "',dtArrage=" + "@a" + ",dtStatistic=" + "@b" + " where schYear=" + rawInfo.SchYear + " and " + "semester='" + rawInfo.Semester + "'";
                 SQLiteHelper.ExecuteNonQuery(connectionStr, insertCmd, a, b);
             }
-            MessageBox.Show("保存成功");
+            StatusChange(priviousSt);
+            MessageBoxEx.Show("写入数据库成功","成功");
         }
         /// <summary>
         /// 序列化datatable
@@ -429,9 +437,10 @@ namespace Schedule
                     //整体将人员安排的表格写入
                     sh.InsertTable(dtFA2Col, "整班", 2, 7);
                     sh.InsertTable(dtFS11Col, "监考次数统计", 4, 3);
+                    ShowDialogAndSave(sh);
                 }
-                ShowDialogAndSave(sh);
                 sh.Close();
+                MessageBoxEx.Show("保存成功","成功");
             }
             catch
             {
@@ -486,11 +495,12 @@ namespace Schedule
                     //状态切换到查询之前的窗体
             //销毁掉查询窗体
         }
-        private void WriteTable(DataTable dt1, DataTable dt2)
+        private void WriteTable(DataTable dt1, DataTable dt2,RawInfo existInfo)
         {
             dgvArrange.DataSource = dt1;
             dgvStatistic.DataSource = dt2;
             CorrectTwoDgv();
+            this.rawInfo = existInfo;
             StatusChange(Status.QueryFinished);
         }
 
