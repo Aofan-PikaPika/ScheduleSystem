@@ -217,6 +217,7 @@
             this.tbtnSearch.Size = new System.Drawing.Size(36, 53);
             this.tbtnSearch.Text = "查询";
             this.tbtnSearch.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.tbtnSearch.Click += new System.EventHandler(this.tbtnSearch_Click);
             // 
             // statusStrip
             // 

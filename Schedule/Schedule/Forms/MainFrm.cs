@@ -11,6 +11,9 @@ using Schedule.Forms;
 using Schedule.ControlExtend;
 using System.Threading;
 using System.IO;
+using Shedule.Store;
+using System.Data.SQLite;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Schedule
 {
@@ -38,6 +41,7 @@ namespace Schedule
             WaitToCalc,
             Processing,
             WaitToOutput,
+            QueryFinished,
         }
         //声明控制窗体状态的委托
         private delegate void StatusHandler(Status st);
@@ -71,6 +75,9 @@ namespace Schedule
                     {
                         this.statusLblStatus.Text = "等待计算";
                         this.statusLblSchoolYear.Text = rawInfo.SchYear + "学年 " + rawInfo.Semester + "学期";
+                        this.dgvArrange.Enabled = true;
+                        this.dgvStatistic.Enabled = true;
+                        this.tabControl.SelectedIndex = 0;
                         this.tbtnIn.Enabled = true;
                         this.tbtnCalc.Enabled = true;
                         this.tbtnReset.Enabled = false;
@@ -94,17 +101,45 @@ namespace Schedule
                         this.dgvArrange.Enabled = true;
                         this.dgvStatistic.Enabled = true;
                         this.tbtnIn.Enabled = true;
+                        //计算和导入就依赖这两个东西
                         if (_origionRawDtArrange != null && _origionRawDtStatistics != null)
-                            this.tbtnCalc.Enabled = true;
+                        {
+                            this.tbtnCalc.Enabled = true; 
+                            this.tbtnReset.Enabled = true;
+                        }
                         else
+                        {
                             this.tbtnCalc.Enabled = false;
-                        this.tbtnReset.Enabled = true;
+                            this.tbtnReset.Enabled = false;
+                        }
                         this.tbtnOut.Enabled = true;
                         this.tbtnOutSeveralCol.Enabled = true;
                         this.tbtnSearch.Enabled = true;
                         this.tbtnSaveToDb.Enabled = true;
                         this.statusLblStatus.Text = "等待导出";
                         this.statusLblStatus.ForeColor = Color.Black;
+                    }
+                    break;
+                case Status.QueryFinished:
+                    {
+                        this.dgvArrange.Enabled = true;
+                        this.dgvArrange.Enabled = true;
+                        this.tbtnIn.Enabled = true;
+                        //暂定查询数据库成功时还可以依照以前导出的表进行计算
+                        if (_origionRawDtArrange != null && _origionRawDtStatistics != null)
+                        {
+                            this.tbtnCalc.Enabled = true;
+                            this.tbtnReset.Enabled = true;
+                        }
+                        else
+                        {
+                            this.tbtnCalc.Enabled = false;
+                            this.tbtnReset.Enabled = false;
+                        }
+                        this.tabControl.SelectedIndex = 0;
+                        this.tbtnSaveToDb.Enabled = true;
+                        this.tbtnSearch.Enabled = true;
+                        this.statusLblStatus.Text = "查询成功";
                     }
                     break;
             }
@@ -334,8 +369,48 @@ namespace Schedule
         }
 
         private void tbtnSaveToDb_Click(object sender, EventArgs e)
+        {  
+            //保存没有实质性的改变，则不改变窗体界面的状态
+            //查询逻辑
+                //判断，保存逻辑       
+            string sqlSearch = @"select dtArrage from tb_calcRecord "
+                       + "where schYear=" + rawInfo.SchYear + " and " + " semester='" + rawInfo.Semester + "'";
+            string connectionStr = @"Data Source= |DataDirectory|\ScheduleDB.db;Pooling=true;FailIfMissing=false";
+            SQLiteCommand cmd = SQLiteHelper.CreateCommand(connectionStr, sqlSearch);
+            DataTable dt = SQLiteHelper.ExecuteDataset(cmd).Tables[0];
+            if (dt.Rows.Count == 0)
+            {
+                DataTable dt1 = (DataTable)this.dgvArrange.DataSource;
+                DataTable dt2 = (DataTable)this.dgvStatistic.DataSource;
+                byte[] a = Serilize<DataTable>(dt1);
+                byte[] b = Serilize<DataTable>(dt2);
+                string insertCmd = @"insert into tb_calcRecord(schYear,semester,dtArrage,dtStatistic)"+ " values (" + rawInfo.SchYear + ",'" + rawInfo.Semester + "'," + " @a " + "," + "@b" + ")";
+                SQLiteHelper.ExecuteNonQuery(connectionStr, insertCmd, a, b);
+            }
+            else
+            {
+                DataTable dt1 = (DataTable)this.dgvArrange.DataSource;
+                DataTable dt2 = (DataTable)this.dgvStatistic.DataSource;
+                byte[] a = Serilize<DataTable>(dt1);
+                byte[] b = Serilize<DataTable>(dt2);
+                string insertCmd = @"update tb_calcRecord set schYear=" + rawInfo.SchYear + ",semester='" + rawInfo.Semester + "',dtArrage=" + "@a" + ",dtStatistic=" + "@b" + " where schYear=" + rawInfo.SchYear + " and " + "semester='" + rawInfo.Semester + "'";
+                SQLiteHelper.ExecuteNonQuery(connectionStr, insertCmd, a, b);
+            }
+            MessageBox.Show("保存成功");
+        }
+        /// <summary>
+        /// 序列化datatable
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        private static byte[] Serilize<T>(T obj)
         {
-           
+            BinaryFormatter bFmter = new BinaryFormatter();
+            MemoryStream ms = new MemoryStream();
+            bFmter.Serialize(ms, obj);
+            byte[] buffer = ms.ToArray();
+            return buffer;
         }
 
         private void tbtnOutSeveralCol_Click(object sender, EventArgs e)
@@ -394,6 +469,29 @@ namespace Schedule
             DataTable dtRecountedStatistic = ReCounter.Total(newTeacher);
             //再次填充DGV
             this.dgvStatistic.FillDt(2, dtRecountedStatistic);
+        }
+
+        private void tbtnSearch_Click(object sender, EventArgs e)
+        {
+            SubFormQuery sfq = new SubFormQuery();
+            sfq.getTableFromDBFunction += new getTableFromDBHandle(WriteTable);
+            sfq.ShowDialog();
+            sfq.Dispose();
+            //暂存窗体之前的状态
+            //判断frmQuery中有没有被查出值来
+                //如果有
+                    //让窗体上显示
+                    //状态切换到QueryFinished
+                //如果没有
+                    //状态切换到查询之前的窗体
+            //销毁掉查询窗体
+        }
+        private void WriteTable(DataTable dt1, DataTable dt2)
+        {
+            dgvArrange.DataSource = dt1;
+            dgvStatistic.DataSource = dt2;
+            CorrectTwoDgv();
+            StatusChange(Status.QueryFinished);
         }
 
 
