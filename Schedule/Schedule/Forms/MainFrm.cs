@@ -343,10 +343,10 @@ namespace Schedule
                     //整体将人员安排的表格写入
                     sh.InsertTable(dtFinalArrange, "整班", 2, 1);
                     sh.InsertTable(dtFinalStatistic, "监考次数统计", 4, 1);
-                    ShowDialogAndSave(sh);
+                    if(ShowDialogAndSave(sh))
+                        MessageBoxEx.Show("保存成功", "成功");
                 }
                 sh.Close();
-                MessageBoxEx.Show("保存成功","成功");
             }
             catch
             {
@@ -356,8 +356,9 @@ namespace Schedule
             StatusChange(Status.WaitToOutput);
         }
 
-        private void ShowDialogAndSave(ExcelHelper sh)
+        private bool ShowDialogAndSave(ExcelHelper sh)
         {
+            bool isSuccess = false;
             string newName = Path.GetDirectoryName(this.rawInfo.FilePath) + "\\"+this.rawInfo.SchYear+"学年"+this.rawInfo.Semester+"学期_安排结果"+".xlsx";
             SaveFileDialog sfd = new SaveFileDialog();
             sfd.FileName = newName;
@@ -370,7 +371,9 @@ namespace Schedule
             if (dr == DialogResult.OK)
             {
                 sh.SaveAs(sfd.FileName);
+                isSuccess = true;
             }
+            return isSuccess;
         }
 
         private void tbtnSaveToDb_Click(object sender, EventArgs e)
@@ -379,9 +382,9 @@ namespace Schedule
             StatusChange(Status.Processing);
             //保存没有实质性的改变，则不改变窗体界面的状态
             //查询逻辑
-                //判断，保存逻辑       
+            //判断，保存逻辑       
             string sqlSearch = @"select dtArrage from tb_calcRecord "
-                       + "where schYear=" + rawInfo.SchYear + " and " + " semester='" + rawInfo.Semester + "'";
+                        + "where schYear=" + rawInfo.SchYear + " and " + " semester='" + rawInfo.Semester + "'";
             string connectionStr = @"Data Source= |DataDirectory|\ScheduleDB.db;Pooling=true;FailIfMissing=false";
             SQLiteCommand cmd = SQLiteHelper.CreateCommand(connectionStr, sqlSearch);
             DataTable dt = SQLiteHelper.ExecuteDataset(cmd).Tables[0];
@@ -391,20 +394,26 @@ namespace Schedule
                 DataTable dt2 = (DataTable)this.dgvStatistic.DataSource;
                 byte[] a = Serilize<DataTable>(dt1);
                 byte[] b = Serilize<DataTable>(dt2);
-                string insertCmd = @"insert into tb_calcRecord(schYear,semester,dtArrage,dtStatistic)"+ " values (" + rawInfo.SchYear + ",'" + rawInfo.Semester + "'," + " @a " + "," + "@b" + ")";
+                string insertCmd = @"insert into tb_calcRecord(schYear,semester,dtArrage,dtStatistic)" + " values (" + rawInfo.SchYear + ",'" + rawInfo.Semester + "'," + " @a " + "," + "@b" + ")";
                 SQLiteHelper.ExecuteNonQuery(connectionStr, insertCmd, a, b);
+                MessageBoxEx.Show("写入数据库成功", "成功");
             }
             else
             {
-                DataTable dt1 = (DataTable)this.dgvArrange.DataSource;
-                DataTable dt2 = (DataTable)this.dgvStatistic.DataSource;
-                byte[] a = Serilize<DataTable>(dt1);
-                byte[] b = Serilize<DataTable>(dt2);
-                string insertCmd = @"update tb_calcRecord set schYear=" + rawInfo.SchYear + ",semester='" + rawInfo.Semester + "',dtArrage=" + "@a" + ",dtStatistic=" + "@b" + " where schYear=" + rawInfo.SchYear + " and " + "semester='" + rawInfo.Semester + "'";
-                SQLiteHelper.ExecuteNonQuery(connectionStr, insertCmd, a, b);
+                if (MessageBoxEx.Show("已有" + rawInfo.SchYear + "学年 " + rawInfo.Semester + "学期" + "的计算记录？\n\r\n\r是否覆盖？", "提示", MessageBoxButtons.OKCancel) == DialogResult.OK)
+                {
+                    DataTable dt1 = (DataTable)this.dgvArrange.DataSource;
+                    DataTable dt2 = (DataTable)this.dgvStatistic.DataSource;
+                    byte[] a = Serilize<DataTable>(dt1);
+                    byte[] b = Serilize<DataTable>(dt2);
+                    string insertCmd = @"update tb_calcRecord set schYear=" + rawInfo.SchYear + ",semester='" + rawInfo.Semester + "',dtArrage=" + "@a" + ",dtStatistic=" + "@b" + " where schYear=" + rawInfo.SchYear + " and " + "semester='" + rawInfo.Semester + "'";
+                    SQLiteHelper.ExecuteNonQuery(connectionStr, insertCmd, a, b);
+                    MessageBoxEx.Show("写入数据库成功", "成功");
+                }
             }
             StatusChange(priviousSt);
-            MessageBoxEx.Show("写入数据库成功","成功");
+
+
         }
         /// <summary>
         /// 序列化datatable
@@ -437,10 +446,10 @@ namespace Schedule
                     //整体将人员安排的表格写入
                     sh.InsertTable(dtFA2Col, "整班", 2, 7);
                     sh.InsertTable(dtFS11Col, "监考次数统计", 4, 3);
-                    ShowDialogAndSave(sh);
+                    if(ShowDialogAndSave(sh))
+                        MessageBoxEx.Show("保存成功", "成功");
                 }
                 sh.Close();
-                MessageBoxEx.Show("保存成功","成功");
             }
             catch
             {
