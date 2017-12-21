@@ -29,6 +29,11 @@ namespace Schedule.Forms
 
         private void btnSure_Click(object sender, EventArgs e)
         {
+            if (this.cboSchoolYear.SelectedItem == null || this.cboSemester.SelectedItem == null)
+            {
+                this.Close();
+                return;
+            }
             //查询第一个datatable
             string sqlSearch = @"select dtArrage from tb_calcRecord "
                  + "where schYear=" + this.cboSchoolYear.SelectedItem.ToString() + " and " + " semester='" + this.cboSemester.SelectedItem.ToString() + "'";
